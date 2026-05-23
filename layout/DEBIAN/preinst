@@ -5,23 +5,6 @@ log() {
     printf '[RelayRace preinst] %s\n' "$*"
 }
 
-log "clear old RelayRace package payload before unpack"
-rm -f /var/jb/usr/share/relayrace/networkserviceproxy 2>/dev/null || true
-rm -f /var/jb/usr/share/relayrace/RelayRace.dylib 2>/dev/null || true
-rm -f /var/jb/usr/share/relayrace/build-id.txt 2>/dev/null || true
-rm -f /var/jb/usr/lib/TweakInject/RelayRace.dylib 2>/dev/null || true
-rm -f /var/jb/Library/MobileSubstrate/DynamicLibraries/RelayRace.dylib 2>/dev/null || true
-rm -f /var/jb/Library/MobileSubstrate/DynamicLibraries/RelayRace.plist 2>/dev/null || true
-
-log "clear old staged networkserviceproxy copies"
-rm -f /var/jb/System/Library/SysBins/networkserviceproxy 2>/dev/null || true
-rm -f /var/jb/System/Library/SysBins/networkserviceproxy.relayrace-disabled 2>/dev/null || true
-rm -f /var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy 2>/dev/null || true
-rm -f /var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy.relayrace-disabled 2>/dev/null || true
-
-mkdir -p /var/jb/usr/share/relayrace
-mkdir -p /var/jb/usr/lib/TweakInject
-mkdir -p /var/jb/Library/MobileSubstrate/DynamicLibraries
-mkdir -p /var/jb/System/Library/SysBins/usr/libexec
+log "preparing install"
 
 exit 0

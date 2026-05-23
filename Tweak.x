@@ -4,9 +4,6 @@
 #import <string.h>
 #import <stdlib.h>
 
-static BOOL rr_didPatchVerifySignature;
-static BOOL rr_didPatchValidateConfiguration;
-
 static BOOL rr_is_networkserviceproxy(void) {
     const char *processName = getprogname();
     return processName && strcmp(processName, "networkserviceproxy") == 0;
@@ -88,10 +85,10 @@ static void rr_scan_and_patch_direct_bypass(void) {
         Class cls = objc_lookUpClass(*name);
         if (!cls) continue;
 
-        rr_didPatchVerifySignature |= rr_patch_method_list(cls, YES, verifySel, (IMP)rr_verify_signature_bypass, NO);
-        rr_didPatchVerifySignature |= rr_patch_method_list(cls, NO, verifySel, (IMP)rr_verify_signature_bypass, NO);
-        rr_didPatchValidateConfiguration |= rr_patch_method_list(cls, YES, validateSel, (IMP)rr_validate_configuration_bypass, YES);
-        rr_didPatchValidateConfiguration |= rr_patch_method_list(cls, NO, validateSel, (IMP)rr_validate_configuration_bypass, YES);
+        rr_patch_method_list(cls, YES, verifySel, (IMP)rr_verify_signature_bypass, NO);
+        rr_patch_method_list(cls, NO, verifySel, (IMP)rr_verify_signature_bypass, NO);
+        rr_patch_method_list(cls, YES, validateSel, (IMP)rr_validate_configuration_bypass, YES);
+        rr_patch_method_list(cls, NO, validateSel, (IMP)rr_validate_configuration_bypass, YES);
     }
 }
 
