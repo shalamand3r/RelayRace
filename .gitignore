@@ -1,20 +1,20 @@
-# Theos build/staging output
+# Theos
 .theos/
 
-# Built packages
+# Packages
 /packages/
 
-# Local OS/editor noise
+# Local
 .DS_Store
 **/.DS_Store
 *.swp
 *.swo
 
-# Local logs/temp output
+# Temp
 *.log
 *.tmp
 *.bak
 tools/source/.build/
 
-# Local reference drops
+# Reference
 /reference/
