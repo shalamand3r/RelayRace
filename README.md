@@ -25,8 +25,13 @@ Download the latest version from **[Releases](https://github.com/shalamand3r/Rel
 RelayRace includes a prepared `networkserviceproxy` binary that was dumped from an iOS 17.0 device so that the tweak works out of the box. If you would rather use your own copy, dump `networkserviceproxy` from an iOS/iPadOS 17.0 device, patch it locally, and replace the bundled file before building:
 
 ```sh
+# Replace the bundled binary with your own dumped copy.
 cp /path/to/your/networkserviceproxy tools/macprep/networkserviceproxy.ct
+
+# Patch your copy in place.
 tools/macprep/relayrace-ct-bypass-mac -i tools/macprep/networkserviceproxy.ct -r
+
+# Build the package with your patched binary.
 gmake package
 ```
 
