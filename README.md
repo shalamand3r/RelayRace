@@ -1,7 +1,7 @@
 # RelayRace 🌐
 ### A jailbreak tweak that fixes iCloud Private Relay (Safari, Mail) on iOS 17.0.
 
-RelayRace fixes an iOS 17.0 bug where iCloud Private Relay fails to activate. While the system fetches a config from `mask-api.icloud.com`, it gets rejected by a local security check. By injecting into a prepared copy of the `networkserviceproxy` daemon, RelayRace bypasses this validation failure by allowing the patched daemon to function and route traffic.
+RelayRace fixes an iOS 17.0 bug where iCloud Private Relay fails to activate. While the system fetches a config from `mask-api.icloud.com`, it gets rejected by a local security check. By injecting into a prepared copy of the `networkserviceproxy` daemon, RelayRace bypasses this validation failure since it allows the patched daemon to route traffic.
 
 ---
 
