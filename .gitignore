@@ -1,0 +1,30 @@
+# Theos build/staging output
+.theos/
+
+# Built packages
+packages/*.deb
+packages/**/*.deb
+
+# Local OS/editor noise
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+
+# Local logs/temp output
+*.log
+*.tmp
+*.bak
+
+# Local reference/vendor drops
+/reference/
+/ellekit-main
+/entitlements/
+/basebins/
+/packaging/relayrace-daemonprep/
+/packaging/
+/networkserviceproxy
+/scripts/
+/build/macprep/*.input
+/build/macprep/*.inject
+/packages

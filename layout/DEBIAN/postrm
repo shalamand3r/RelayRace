@@ -1,0 +1,31 @@
+#!/var/jb/bin/sh
+set -u
+
+log() {
+    printf '[RelayRace remove] %s\n' "$*"
+}
+
+finish() {
+    [ -n "${CYDIA:-}" ] || return 0
+    set -- $CYDIA
+    [ "${2:-}" = "1" ] || return 0
+    eval "printf '%s\n' 'finish:usreboot' >&${1:-}" 2>/dev/null || true
+}
+
+rm -f /var/jb/usr/lib/TweakInject/RelayRace.dylib 2>/dev/null || true
+rm -f /var/jb/System/Library/SysBins/networkserviceproxy 2>/dev/null || true
+rm -f /var/jb/System/Library/SysBins/networkserviceproxy.relayrace-disabled 2>/dev/null || true
+rm -f /var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy 2>/dev/null || true
+rm -f /var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy.relayrace-disabled 2>/dev/null || true
+rm -f /var/jb/basebins/entitlements/networkserviceproxy.xml 2>/dev/null || true
+rm -f /var/jb/basebins/relayrace-empty-entitlements.plist 2>/dev/null || true
+rm -f /var/jb/var/log/relayrace-install.log 2>/dev/null || true
+
+rmdir /var/jb/usr/lib/TweakInject 2>/dev/null || true
+rmdir /var/jb/System/Library/SysBins/usr/libexec 2>/dev/null || true
+rmdir /var/jb/System/Library/SysBins 2>/dev/null || true
+
+log "removed RelayRace staged files"
+finish
+
+exit 0

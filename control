@@ -1,0 +1,12 @@
+Package: com.shalamand3r.relayrace
+Name: RelayRace
+Version: 1.0
+Architecture: iphoneos-arm64
+Pre-Depends: ellekit
+Depends: firmware (= 17.0)
+Description: Fix iCloud Private Relay on iOS 17.0
+Icon: https://github.com/shalamand3r/shalamand3r.github.io/blob/main/icons/relayrace.png?raw=true
+SileoDepiction: https://raw.githubusercontent.com/shalamand3r/shalamand3r.github.io/refs/heads/main/depictions/relayrace.json
+Maintainer: shalamand3r
+Author: shalamand3r
+Section: Tweaks

@@ -1,0 +1,50 @@
+#!/var/jb/bin/sh
+set -eu
+
+SHARE=/var/jb/usr/share/relayrace
+INJECT=/var/jb/usr/lib/TweakInject/RelayRace.dylib
+SYSBIN=/var/jb/System/Library/SysBins/networkserviceproxy
+LIBEXEC=/var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy
+
+log() {
+    printf '[RelayRace install] %s\n' "$*"
+}
+
+finish() {
+    [ -n "${CYDIA:-}" ] || return 0
+    set -- $CYDIA
+    [ "${2:-}" = "1" ] || return 0
+    eval "printf '%s\n' 'finish:usreboot' >&${1:-}" 2>/dev/null || true
+}
+
+stage_file() {
+    src="$1"
+    dst="$2"
+
+    [ -x "$src" ] || {
+        log "missing payload: ${src}"
+        exit 1
+    }
+
+    mkdir -p "$(dirname "$dst")"
+    rm -f "$dst" 2>/dev/null || true
+    cp -p "$src" "$dst"
+    chmod 0755 "$dst"
+    chown 0:0 "$dst" 2>/dev/null || true
+    log "staged ${dst}"
+}
+
+log "installing RelayRace"
+
+if [ -f "$SHARE/build-id.txt" ]; then
+    log "package marker: $(cat "$SHARE/build-id.txt")"
+fi
+
+stage_file "$SHARE/RelayRace.dylib" "$INJECT"
+stage_file "$SHARE/networkserviceproxy" "$SYSBIN"
+stage_file "$SHARE/networkserviceproxy" "$LIBEXEC"
+
+log "finished; userspace reboot needed"
+finish
+
+exit 0
