@@ -15,6 +15,7 @@ packages/**/*.deb
 *.log
 *.tmp
 *.bak
+tools/source/.build/
 
 # Local reference/vendor drops
 /reference/
