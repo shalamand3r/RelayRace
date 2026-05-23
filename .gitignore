@@ -2,8 +2,7 @@
 .theos/
 
 # Built packages
-packages/*.deb
-packages/**/*.deb
+/packages/
 
 # Local OS/editor noise
 .DS_Store
@@ -17,15 +16,5 @@ packages/**/*.deb
 *.bak
 tools/source/.build/
 
-# Local reference/vendor drops
+# Local reference drops
 /reference/
-/ellekit-main
-/entitlements/
-/basebins/
-/packaging/relayrace-daemonprep/
-/packaging/
-/networkserviceproxy
-/scripts/
-/build/macprep/*.input
-/build/macprep/*.inject
-/packages
