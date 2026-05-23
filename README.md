@@ -33,6 +33,10 @@ gmake package
 The resulting `.deb` will include your own patched binary instead of the one shipped in this repo. Make sure the binary comes from an iOS 17.0 device as otherwise RelayRace may not function.
 
 ---
+## Credits
+- Lars Fröder (opa334) for ChOma / CoreTrust bypass tooling.
+- verygenericname for NathanLR and nathanlr_hooks.
+---
 
 <p align="center">
   <a href="https://github.com/shalamand3r/RelayRace/releases">
