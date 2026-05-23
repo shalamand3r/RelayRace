@@ -32,7 +32,7 @@ cp /path/to/your/networkserviceproxy tools/macprep/networkserviceproxy.ct
 tools/macprep/relayrace-ct-bypass-mac -i tools/macprep/networkserviceproxy.ct -r
 
 # Build the package with your patched binary.
-gmake package # or: make package
+make package # cool people use gmake package
 ```
 
 The resulting `.deb` will include your own patched binary instead of the one shipped in this repo. Make sure the binary comes from an iOS 17.0 device as otherwise RelayRace may not function.
