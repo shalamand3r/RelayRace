@@ -20,6 +20,18 @@ I have only seen this issue affect users on iOS/iPadOS 17.0, therefore **RelayRa
 
 Download the latest version from **[Releases](https://github.com/shalamand3r/RelayRace/releases)** or **[Add my Sileo Repo](https://shalamand3r.github.io)**.
 
+## Using Your Own `networkserviceproxy`
+
+RelayRace includes a prepared `networkserviceproxy` binary that was dumped from an iOS 17.0 device so that the package can work out of the box. If you would rather use your own copy, dump `networkserviceproxy` from an iOS/iPadOS 17.0 device, patch it locally, and replace the bundled file before building:
+
+```sh
+cp /path/to/your/networkserviceproxy tools/macprep/networkserviceproxy.ct
+tools/macprep/relayrace-ct-bypass-mac -i tools/macprep/networkserviceproxy.ct -r
+gmake package
+```
+
+The resulting `.deb` will include your own patched binary instead of the one shipped in this repo. Make sure the binary comes from an iOS 17.0 device as otherwise RelayRace may not function.
+
 ---
 
 <p align="center">
