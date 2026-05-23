@@ -22,7 +22,7 @@ Download the latest version from **[Releases](https://github.com/shalamand3r/Rel
 
 ## Using Your Own `networkserviceproxy`
 
-RelayRace includes a prepared `networkserviceproxy` binary that was dumped from an iOS 17.0 device so that the package can work out of the box. If you would rather use your own copy, dump `networkserviceproxy` from an iOS/iPadOS 17.0 device, patch it locally, and replace the bundled file before building:
+RelayRace includes a prepared `networkserviceproxy` binary that was dumped from an iOS 17.0 device so that the tweak works out of the box. If you would rather use your own copy, dump `networkserviceproxy` from an iOS/iPadOS 17.0 device, patch it locally, and replace the bundled file before building:
 
 ```sh
 cp /path/to/your/networkserviceproxy tools/macprep/networkserviceproxy.ct
