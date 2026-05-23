@@ -16,9 +16,9 @@ RelayRace fixes an iOS 17.0 bug where iCloud Private Relay fails to activate. Wh
 
 ## Compatibility & Installation
 
-I have only seen this issue affect users on iOS/iPadOS 17.0, therefore **RelayRace only supports NathanLR on iOS 17.0.** Also, the bundled `networkserviceproxy` executable was pulled from a device running this version. A userspace reboot is **required** after installation. 
+I have only seen this issue affect users on iOS/iPadOS 17.0, therefore **RelayRace only supports NathanLR on iOS 17.0.** Also, the bundled `networkserviceproxy` executable was pulled from a device running iOS 17.0.
 
-Download the latest version from **[Releases](https://github.com/shalamand3r/RelayRace/releases)** or **[Add my Sileo Repo](https://shalamand3r.github.io)**.
+Download the latest version from **[Releases](https://github.com/shalamand3r/RelayRace/releases)** or **[Add my Sileo Repo](https://shalamand3r.github.io)**. A userspace reboot is **required** after installation. 
 
 ## Using Your Own `networkserviceproxy`
 
