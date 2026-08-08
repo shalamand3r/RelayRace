@@ -2,12 +2,44 @@
 set -eu
 
 SHARE=/var/jb/usr/share/relayrace
+NATHANLR_DYLIB=$SHARE/RelayRace.nathanlr.dylib
 INJECT=/var/jb/usr/lib/TweakInject/RelayRace.dylib
+INJECT_PLIST=/var/jb/usr/lib/TweakInject/RelayRace.plist
 SYSBIN=/var/jb/System/Library/SysBins/networkserviceproxy
 LIBEXEC=/var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy
+NATHANLR_TWEAK_DIR=/System/Library/VideoCodecs/lib/TweakInject
+NATHANLR_ELLEKIT=/System/Library/VideoCodecs/lib/libellekit.dylib
+STATE_DIR=/var/jb/usr/lib/relayrace
+STATE=$STATE_DIR/install-mode
+
+PREVIOUS_MODE=
+if [ -f "$STATE" ]; then
+    PREVIOUS_MODE=$(cat "$STATE" 2>/dev/null || true)
+fi
 
 log() {
-    printf '[RelayRace install] %s\n' "$*"
+    printf '%s\n' "$*"
+}
+
+warn() {
+    printf 'Warning: %s\n' "$*"
+}
+
+error() {
+    printf 'Error: %s\n' "$*"
+}
+
+is_nathanlr() {
+    # NathanLR's hook/daemon locations live outside the package's /var/jb
+    # tree. Do not use /var/jb/System/Library/SysBins as a marker because this
+    # package creates that directory for the fallback itself.
+    [ -f "/System/Library/VideoCodecs/lib/hooks/generalhook.dylib" ] && return 0
+    [ -d "/System/Library/VideoCodecs/SysBins" ] && \
+    [ -d "/System/Library/VideoCodecs/lib/hooks" ]
+}
+
+is_dopamine() {
+    [ -f /var/jb/.installed_dopamine ] || [ -x /var/jb/basebin/jbctl ]
 }
 
 finish() {
@@ -20,31 +52,101 @@ finish() {
 stage_file() {
     src="$1"
     dst="$2"
+    mode="${3:-0755}"
 
-    [ -x "$src" ] || {
-        log "missing payload: ${src}"
-        exit 1
-    }
+    if [ ! -f "$src" ] && [ ! -x "$src" ]; then
+        error "Missing payload: ${src}"
+        return 1
+    fi
 
     mkdir -p "$(dirname "$dst")"
     rm -f "$dst" 2>/dev/null || true
     cp -p "$src" "$dst"
-    chmod 0755 "$dst"
+    chmod "$mode" "$dst"
     chown 0:0 "$dst" 2>/dev/null || true
-    log "staged ${dst}"
 }
 
-log "installing RelayRace"
+write_state() {
+    mode="$1"
+    mkdir -p "$STATE_DIR"
+    printf '%s\n' "$mode" > "$STATE"
+    chmod 0644 "$STATE"
+    chown 0:0 "$STATE" 2>/dev/null || true
+}
 
-if [ -f "$SHARE/build-id.txt" ]; then
-    log "package marker: $(cat "$SHARE/build-id.txt")"
+remove_stale_daemon() {
+    target="$1"
+
+    if [ "$PREVIOUS_MODE" = "nathanlr" ]; then
+        rm -f "$target" 2>/dev/null || true
+        log "removed stale NathanLR daemon ${target}"
+        return 0
+    fi
+
+    # If this is an old install without state, only remove a regular file that
+    # exactly matches our bundled daemon. Leave any other daemon untouched.
+    if [ -f "$SHARE/networkserviceproxy" ] && [ -f "$target" ] && \
+       cmp -s "$SHARE/networkserviceproxy" "$target" 2>/dev/null; then
+        rm -f "$target" 2>/dev/null || true
+        log "removed stale RelayRace daemon ${target}"
+    elif [ -f "$target" ]; then
+        log "left existing ${target}; it is not marked as RelayRace"
+    fi
+}
+
+# Version 1.2 briefly used persistent diagnostic files. Remove them on upgrade;
+# runtime status now goes exclusively to Apple's rotating unified log.
+rm -f /var/mobile/Library/Logs/RelayRace.log 2>/dev/null || true
+rm -f /var/mobile/Library/Preferences/com.shalamand3r.relayrace.log 2>/dev/null || true
+rm -f /var/tmp/RelayRace.log /tmp/RelayRace.log 2>/dev/null || true
+
+IOS_VERSION=$(/usr/bin/sw_vers -productVersion 2>/dev/null || true)
+warn "Only iOS/iPadOS 17.0 has been tested; later versions are used at your own risk."
+
+if is_nathanlr; then
+    log "NathanLR detected."
+    warn "Dopamine is recommended when available for native injection and improved stability."
+    case "$IOS_VERSION" in
+        ""|17.0|17.0.*)
+            ;;
+        *)
+            warn "The bundled NathanLR daemon is from iOS 17.0 and is untested on this firmware."
+            ;;
+    esac
+    if [ ! -d "$NATHANLR_TWEAK_DIR" ]; then
+        warn "The NathanLR TweakInject bridge was not found; RelayRace may not load."
+    fi
+    if [ ! -f "$NATHANLR_ELLEKIT" ]; then
+        warn "NathanLR's ElleKit library was not found; RelayRace may not load."
+    fi
+    stage_file "$NATHANLR_DYLIB" "$INJECT"
+    stage_file "$SHARE/RelayRace.plist" "$INJECT_PLIST" 0644
+    log "Installing the preloaded-daemon fallback."
+    stage_file "$SHARE/networkserviceproxy" "$SYSBIN"
+    stage_file "$SHARE/networkserviceproxy" "$LIBEXEC"
+    write_state nathanlr
+    log "Installed. A userspace reboot is required."
+    finish
+else
+    if is_dopamine; then
+        log "Dopamine detected."
+    else
+        warn "Jailbreak type not identified; using native ElleKit injection."
+    fi
+    log "Installing into the stock networkserviceproxy daemon with ElleKit."
+    # Do this after unpack/upgrade cleanup. ElleKit requires both files with
+    # the same basename; deleting the plist makes it silently skip the dylib.
+    stage_file "$SHARE/RelayRace.dylib" "$INJECT"
+    stage_file "$SHARE/RelayRace.plist" "$INJECT_PLIST" 0644
+    remove_stale_daemon "$SYSBIN"
+    remove_stale_daemon "$LIBEXEC"
+    write_state native
+    if killall -9 networkserviceproxy 2>/dev/null; then
+        log "Installed. networkserviceproxy restarted."
+    else
+        warn "networkserviceproxy was not restarted automatically."
+        warn "Perform a userspace reboot if the tweak does not activate."
+    fi
 fi
-
-stage_file "$SHARE/RelayRace.dylib" "$INJECT"
-stage_file "$SHARE/networkserviceproxy" "$SYSBIN"
-stage_file "$SHARE/networkserviceproxy" "$LIBEXEC"
-
-log "finished; userspace reboot needed"
-finish
 
 exit 0

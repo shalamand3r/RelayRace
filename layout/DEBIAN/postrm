@@ -1,27 +1,94 @@
 #!/var/jb/bin/sh
 set -u
 
+STATE_DIR=/var/jb/usr/lib/relayrace
+STATE=$STATE_DIR/install-mode
+INJECT=/var/jb/usr/lib/TweakInject/RelayRace.dylib
+INJECT_PLIST=/var/jb/usr/lib/TweakInject/RelayRace.plist
+SYSBIN=/var/jb/System/Library/SysBins/networkserviceproxy
+LIBEXEC=/var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy
+
 log() {
-    printf '[RelayRace remove] %s\n' "$*"
+    printf '%s\n' "$*"
 }
 
-finish() {
+warn() {
+    printf 'Warning: %s\n' "$*"
+}
+
+is_nathanlr() {
+    [ -f "/System/Library/VideoCodecs/lib/hooks/generalhook.dylib" ] && return 0
+    [ -d "/System/Library/VideoCodecs/SysBins" ] && \
+    [ -d "/System/Library/VideoCodecs/lib/hooks" ]
+}
+
+is_dopamine() {
+    [ -f /var/jb/.installed_dopamine ] || [ -x /var/jb/basebin/jbctl ]
+}
+
+finish_userspace_reboot() {
     [ -n "${CYDIA:-}" ] || return 0
     set -- $CYDIA
     [ "${2:-}" = "1" ] || return 0
     eval "printf '%s\n' 'finish:usreboot' >&${1:-}" 2>/dev/null || true
 }
 
-rm -f /var/jb/usr/lib/TweakInject/RelayRace.dylib 2>/dev/null || true
-rm -f /var/jb/System/Library/SysBins/networkserviceproxy 2>/dev/null || true
-rm -f /var/jb/System/Library/SysBins/usr/libexec/networkserviceproxy 2>/dev/null || true
+# An old postrm can run during an upgrade after the new package is unpacked.
+# Never remove freshly installed files or request a reboot in that situation.
+case "${1:-remove}" in
+    upgrade|failed-upgrade)
+        exit 0
+        ;;
+esac
 
+MODE=
+if [ -f "$STATE" ]; then
+    MODE=$(cat "$STATE" 2>/dev/null || true)
+fi
+
+# Fall back to jailbreak-specific markers for older installs without state.
+if [ "$MODE" != "nathanlr" ] && [ "$MODE" != "native" ]; then
+    if is_nathanlr; then
+        MODE=nathanlr
+    elif is_dopamine; then
+        MODE=native
+    fi
+fi
+
+# Both modes own the canonical tweak payload.
+rm -f "$INJECT" "$INJECT_PLIST" 2>/dev/null || true
+
+# Remove diagnostic files left by the short-lived 1.2 debug build.
+rm -f /var/mobile/Library/Logs/RelayRace.log 2>/dev/null || true
+rm -f /var/mobile/Library/Preferences/com.shalamand3r.relayrace.log 2>/dev/null || true
+rm -f /var/tmp/RelayRace.log /tmp/RelayRace.log 2>/dev/null || true
+
+if [ "$MODE" = "nathanlr" ]; then
+    log "NathanLR detected."
+    warn "Removing the preloaded daemon requires a userspace reboot."
+    rm -f "$SYSBIN" "$LIBEXEC" 2>/dev/null || true
+    log "Removed. Requesting userspace reboot."
+    finish_userspace_reboot
+elif [ "$MODE" = "native" ]; then
+    if is_dopamine; then
+        log "Dopamine detected."
+    else
+        log "Native ElleKit installation detected."
+    fi
+    if killall -9 networkserviceproxy 2>/dev/null; then
+        log "Removed. networkserviceproxy restarted; no userspace reboot is required."
+    else
+        log "Removed. No userspace reboot is required."
+    fi
+else
+    warn "Jailbreak type not identified; removed the tweak without requesting a reboot."
+fi
+
+rm -f "$STATE" 2>/dev/null || true
+rmdir "$STATE_DIR" 2>/dev/null || true
 rmdir /var/jb/usr/lib/TweakInject 2>/dev/null || true
 rmdir /var/jb/System/Library/SysBins/usr/libexec 2>/dev/null || true
 rmdir /var/jb/System/Library/SysBins/usr 2>/dev/null || true
 rmdir /var/jb/System/Library/SysBins 2>/dev/null || true
-
-log "removed RelayRace staged files"
-finish
 
 exit 0
